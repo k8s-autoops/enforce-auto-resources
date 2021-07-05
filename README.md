@@ -27,7 +27,7 @@ rules:
     resources: [ "pods" ]
     verbs: [ "list" ]
   - apiGroups: [ "metrics.k8s.io" ]
-    resources: [ "podmetrics" ]
+    resources: [ "pods" ]
     verbs: [ "get" ]
 ---
 # create clusterrolebinding
