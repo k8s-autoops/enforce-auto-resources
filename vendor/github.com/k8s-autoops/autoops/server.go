@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"log"
 	"net/http"
 	"os"
@@ -20,7 +21,7 @@ const (
 )
 
 func NewMutatingAdmissionHTTPHandler(
-	fn func(ctx context.Context, request *admissionv1.AdmissionRequest, patches *[]map[string]interface{}) (err error),
+	fn func(ctx context.Context, request *admissionv1.AdmissionRequest, patches *[]map[string]interface{}) (deny string, err error),
 ) http.HandlerFunc {
 	return func(rw http.ResponseWriter, req *http.Request) {
 		var err error
@@ -41,8 +42,9 @@ func NewMutatingAdmissionHTTPHandler(
 		raw, _ := json.Marshal(&review)
 		log.Println(string(raw))
 		// execute fn
+		var deny string
 		var patches []map[string]interface{}
-		if err = fn(req.Context(), review.Request, &patches); err != nil {
+		if deny, err = fn(req.Context(), review.Request, &patches); err != nil {
 			err = fmt.Errorf("failed to execute handler: %s", err.Error())
 			return
 		}
@@ -66,12 +68,22 @@ func NewMutatingAdmissionHTTPHandler(
 			*responsePatchType = admissionv1.PatchTypeJSONPatch
 		}
 		// send response
+		var status *metav1.Status
+		if deny != "" {
+			status = &metav1.Status{
+				Status:  metav1.StatusFailure,
+				Message: deny,
+				Reason:  metav1.StatusReasonBadRequest,
+			}
+		}
+
 		var responseJSON []byte
 		if responseJSON, err = json.Marshal(admissionv1.AdmissionReview{
 			TypeMeta: review.TypeMeta,
 			Response: &admissionv1.AdmissionResponse{
 				UID:       review.Request.UID,
-				Allowed:   true,
+				Allowed:   deny == "",
+				Result:    status,
 				Patch:     responsePatch,
 				PatchType: responsePatchType,
 			},

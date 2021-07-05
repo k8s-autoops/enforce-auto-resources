@@ -1,4 +1,4 @@
-# template-autoops-admission
+# enforce-auto-resources
 
 ## 使用方式
 
@@ -11,14 +11,14 @@
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: template-autoops-admission
+  name: enforce-auto-resources
   namespace: autoops
 ---
 # create clusterrole
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRole
 metadata:
-  name: template-autoops-admission
+  name: enforce-auto-resources
 rules:
   - apiGroups: [ "" ]
     resources: [ "namespaces" ]
@@ -28,21 +28,21 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRoleBinding
 metadata:
-  name: template-autoops-admission
+  name: enforce-auto-resources
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: template-autoops-admission
+  name: enforce-auto-resources
 subjects:
   - kind: ServiceAccount
-    name: template-autoops-admission
+    name: enforce-auto-resources
     namespace: autoops
 ---
 # create job
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: install-template-autoops-admission
+  name: install-enforce-auto-resources
   namespace: autoops
 spec:
   template:
@@ -53,13 +53,13 @@ spec:
           image: autoops/admission-bootstrapper
           env:
             - name: ADMISSION_NAME
-              value: template-autoops-admission
+              value: enforce-auto-resources
             - name: ADMISSION_IMAGE
-              value: autoops/template-autoops-admission
+              value: autoops/enforce-auto-resources
             - name: ADMISSION_ENVS
               value: ""
             - name: ADMISSION_SERVICE_ACCOUNT
-              value: "template-autoops-admission"
+              value: "enforce-auto-resources"
             - name: ADMISSION_MUTATING
               value: "true"
             - name: ADMISSION_IGNORE_FAILURE
@@ -70,6 +70,10 @@ spec:
               value: '[{"operations":["CREATE"],"apiGroups":[""], "apiVersions":["*"], "resources":["services"]}]'
       restartPolicy: OnFailure
 ```
+
+为需要启用自动 Resources 的命名空间添加 Annotation
+
+* `autoops.enforce-auto-resources/enabled=true`
 
 ## Credits
 
