@@ -20,8 +20,17 @@ kind: ClusterRole
 metadata:
   name: enforce-auto-resources
 rules:
+  - apiGroups: [ "apps" ]
+    resources: [ "deployments", "replicasets" ]
+    verbs: [ "get" ]
+  - apiGroups: [ "" ]
+    resources: [ "pods" ]
+    verbs: [ "list" ]
   - apiGroups: [ "" ]
     resources: [ "namespaces" ]
+    verbs: [ "list" ]
+  - apiGroups: [ "metrics.k8s.io" ]
+    resources: [ "podmetrics" ]
     verbs: [ "get" ]
 ---
 # create clusterrolebinding
@@ -56,14 +65,12 @@ spec:
               value: enforce-auto-resources
             - name: ADMISSION_IMAGE
               value: autoops/enforce-auto-resources
-            - name: ADMISSION_ENVS
-              value: ""
             - name: ADMISSION_SERVICE_ACCOUNT
               value: "enforce-auto-resources"
             - name: ADMISSION_MUTATING
               value: "true"
             - name: ADMISSION_IGNORE_FAILURE
-              value: "false"
+              value: "true"
             - name: ADMISSION_SIDE_EFFECT
               value: "None"
             - name: ADMISSION_RULES
