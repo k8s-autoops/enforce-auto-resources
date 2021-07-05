@@ -10,8 +10,9 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/json"
 	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
 	metricsv1beta1 "k8s.io/metrics/pkg/apis/metrics/v1beta1"
-	"k8s.io/metrics/pkg/client/clientset/versioned"
+	metricsclient "k8s.io/metrics/pkg/client/clientset/versioned"
 	"log"
 	"net/http"
 	"os"
@@ -40,7 +41,15 @@ func main() {
 		return
 	}
 
-	mClient := versioned.New(client.RESTClient())
+	var cfg *rest.Config
+	if cfg, err = rest.InClusterConfig(); err != nil {
+		return
+	}
+
+	var mClient *metricsclient.Clientset
+	if mClient, err = metricsclient.NewForConfig(cfg); err != nil {
+		return
+	}
 
 	s := &http.Server{
 		Addr: ":443",
@@ -104,7 +113,9 @@ func main() {
 
 				for _, knownPod := range pods.Items {
 					var podMetrics *metricsv1beta1.PodMetrics
-					if podMetrics, err = mClient.MetricsV1beta1().PodMetricses(knownPod.Namespace).Get(context.Background(), knownPod.Name, metav1.GetOptions{}); err != nil {
+					if podMetrics, err = mClient.MetricsV1beta1().
+						PodMetricses(knownPod.Namespace).
+						Get(context.Background(), knownPod.Name, metav1.GetOptions{}); err != nil {
 						return
 					}
 					for _, containerMetrics := range podMetrics.Containers {
