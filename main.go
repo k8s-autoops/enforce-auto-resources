@@ -168,9 +168,9 @@ func main() {
 						})
 					}
 					{
-						if cpuUsage := maxCPU[container.Name]; cpuUsage != nil {
+						if cpuUsage := maxCPU[container.Name]; cpuUsage != nil && !cpuUsage.IsZero() {
 							cpuReq := container.Resources.Requests.Cpu()
-							if cpuReq == nil || cpuUsage.Cmp(*cpuReq) == 1 {
+							if cpuReq == nil || cpuReq.IsZero() || cpuUsage.Cmp(*cpuReq) == 1 {
 								*patches = append(*patches, map[string]interface{}{
 									"op":    "replace",
 									"path":  "/spec/containers/" + strconv.Itoa(i) + "/resources/requests/cpu",
@@ -180,7 +180,7 @@ func main() {
 							}
 
 							cpuLim := container.Resources.Limits.Cpu()
-							if cpuLim != nil && cpuUsage.Cmp(*cpuLim) == 1 {
+							if cpuLim != nil && !cpuLim.IsZero() && cpuUsage.Cmp(*cpuLim) == 1 {
 								newCPULim := cpuUsage.DeepCopy()
 								newCPULim.Add(newCPULim)
 								*patches = append(*patches, map[string]interface{}{
@@ -193,9 +193,9 @@ func main() {
 						}
 					}
 					{
-						if memUsage := maxMEM[container.Name]; memUsage != nil {
+						if memUsage := maxMEM[container.Name]; memUsage != nil && !memUsage.IsZero() {
 							memReq := container.Resources.Requests.Memory()
-							if memReq == nil || memUsage.Cmp(*memReq) == 1 {
+							if memReq == nil || memReq.IsZero() || memUsage.Cmp(*memReq) == 1 {
 								*patches = append(*patches, map[string]interface{}{
 									"op":    "replace",
 									"path":  "/spec/containers/" + strconv.Itoa(i) + "/resources/requests/memory",
@@ -205,7 +205,7 @@ func main() {
 							}
 
 							memLim := container.Resources.Limits.Memory()
-							if memLim != nil && memUsage.Cmp(*memLim) == 1 {
+							if memLim != nil && !memLim.IsZero() && memUsage.Cmp(*memLim) == 1 {
 								newMEMLim := memUsage.DeepCopy()
 								newMEMLim.Add(newMEMLim)
 								*patches = append(*patches, map[string]interface{}{
