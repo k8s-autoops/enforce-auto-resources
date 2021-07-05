@@ -26,9 +26,6 @@ rules:
   - apiGroups: [ "" ]
     resources: [ "pods" ]
     verbs: [ "list" ]
-  - apiGroups: [ "" ]
-    resources: [ "namespaces" ]
-    verbs: [ "list" ]
   - apiGroups: [ "metrics.k8s.io" ]
     resources: [ "podmetrics" ]
     verbs: [ "get" ]
@@ -77,10 +74,6 @@ spec:
               value: '[{"operations":["CREATE"],"apiGroups":[""], "apiVersions":["*"], "resources":["services"]}]'
       restartPolicy: OnFailure
 ```
-
-为需要启用自动 Resources 的命名空间添加 Annotation
-
-* `autoops.enforce-auto-resources/enabled=true`
 
 ## Credits
 

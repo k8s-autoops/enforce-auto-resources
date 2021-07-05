@@ -19,10 +19,6 @@ import (
 	"strings"
 )
 
-const (
-	AnnotationKey = "autoops.enforce-auto-resources/enabled"
-)
-
 func exit(err *error) {
 	if *err != nil {
 		log.Println("exited with error:", (*err).Error())
@@ -50,14 +46,6 @@ func main() {
 		Addr: ":443",
 		Handler: autoops.NewMutatingAdmissionHTTPHandler(
 			func(ctx context.Context, request *admissionv1.AdmissionRequest, patches *[]map[string]interface{}) (deny string, err error) {
-				var ns *corev1.Namespace
-				if ns, err = client.CoreV1().Namespaces().Get(ctx, request.Namespace, metav1.GetOptions{}); err != nil {
-					return
-				}
-				if enabled, _ := strconv.ParseBool(ns.Annotations[AnnotationKey]); !enabled {
-					return
-				}
-				_ = &metricsv1beta1.PodMetrics{}
 				var buf []byte
 				if buf, err = request.Object.MarshalJSON(); err != nil {
 					return
