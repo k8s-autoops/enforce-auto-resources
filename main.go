@@ -96,6 +96,10 @@ func main() {
 				if deployment, err = client.AppsV1().Deployments(request.Namespace).Get(ctx, deploymentName, metav1.GetOptions{}); err != nil {
 					return
 				}
+				if deployment.Spec.Template.Spec.NodeName != "" {
+					log.Println("Found Fixed NodeName in Deployment, Skipped")
+					return
+				}
 				labels := deployment.Spec.Template.Labels
 				var pods *corev1.PodList
 				if pods, err = client.CoreV1().Pods(request.Namespace).List(ctx, metav1.ListOptions{
