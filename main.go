@@ -46,6 +46,10 @@ func main() {
 		Addr: ":443",
 		Handler: autoops.NewMutatingAdmissionHTTPHandler(
 			func(ctx context.Context, request *admissionv1.AdmissionRequest, patches *[]map[string]interface{}) (deny string, err error) {
+				if strings.HasPrefix(request.Namespace, "kube-") {
+					log.Println("Ignore", request.Namespace)
+					return
+				}
 				var buf []byte
 				if buf, err = request.Object.MarshalJSON(); err != nil {
 					return
