@@ -71,7 +71,7 @@ spec:
             - name: ADMISSION_SIDE_EFFECT
               value: "None"
             - name: ADMISSION_RULES
-              value: '[{"operations":["CREATE"],"apiGroups":[""], "apiVersions":["*"], "resources":["services"]}]'
+              value: '[{"operations":["CREATE"],"apiGroups":[""], "apiVersions":["*"], "resources":["pods"]}]'
       restartPolicy: OnFailure
 ```
 
